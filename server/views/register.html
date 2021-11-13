@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>login</title>
+    <meta charset="utf-8" />
+</head>
+<body>
+<h1>Register</h1>
+<form name="singup" action="/api/auth/signup" method="post" enctype="application/x-www-form-urlencoded">
+    <input type="text" name="username" placeholder="Username" required><br><br>
+    <input type="text" name="email" placeholder="Email" required><br><br>
+    <input type="password" name="password" placeholder="Password" required><br><br>
+    <select name="role" class="form-control">
+        <option>user</option>
+        <option>admin</option>
+        <option>moderator</option>
+    </select><br><br>
+    <input type="submit" value="Send">
+</form>
+</body>
+
+<script>
+    async function logInn(userName, email, pass, role) {
+        const response = await fetch("/api/auth/signup", {
+            method: "POST",
+            headers: { "Accept": "application/json", "Content-Type": "application/json" },
+            body: JSON.stringify({
+                username: userName,
+                email: email,
+                password: pass,
+                role: role
+            })
+        });
+        if (response.ok === true) {
+            window.location.replace("/users");
+        }
+    }
+
+    document.forms["singup"].addEventListener("submit", e => {
+        e.preventDefault();
+        const form = document.forms["singup"];
+        const name = form.elements["username"].value;
+        const email = form.elements["email"].value;
+        const pass = form.elements["password"].value;
+        const role = form.elements["role"].value;
+        logInn(name, email, pass, role)
+
+    });
+</script>
+</html>
