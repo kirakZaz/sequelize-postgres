@@ -8,13 +8,13 @@ exports.create = async (req, res) => {
         });
         return;
     }
-
-    const user = {
+    console.log('!"!"!',  req.body);
+    const token = {
         username: req.body.username,
         token: req.body.token
     };
 
-    Token.create(user)
+    Token.create(token)
         .then(data => {
             res.send(data);
         })

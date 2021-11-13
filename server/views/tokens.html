@@ -11,12 +11,12 @@
 <form name="tokenForm">
     <input type="hidden" name="id" value="0" />
     <div class="form-group">
-        <label for="token">Token:</label>
+        <label for="username">Username:</label>
         <input class="form-control" name="username" />
     </div>
     <div class="form-group">
-        <label for="username">Username:</label>
-        <input class="form-control" name="email" />
+        <label for="token">Token:</label>
+        <input class="form-control" name="token" />
     </div>
 
     <div class="panel-body">
@@ -54,8 +54,7 @@
     }
 
     async function GetToken(id) {
-        console.log('ID', id)
-        const response = await fetch("/api/tokens/" + id, {
+        const response = await fetch(`/api/tokens/${id}`, {
             method: "GET",
             headers: { "Accept": "application/json" }
         });
@@ -63,6 +62,7 @@
             const token = await response.json();
 
             const form = document.forms["tokenForm"];
+            console.log('form', form.elements)
             form.elements["id"].value = token.id;
             form.elements["username"].value = token.username;
             form.elements["token"].value = token.token;
@@ -86,7 +86,7 @@
         }
     }
 
-    async function EditToken(userId, userName, token) {
+    async function EditToken(userId, token, userName) {
         const response = await fetch(`api/tokens/${userId}`, {
             method: "PUT",
             headers: { "Accept": "application/json", "Content-Type": "application/json" },
@@ -117,12 +117,11 @@
     }
 
     function reset() {
-        const form = document.forms["userForm"];
+        const form = document.forms["tokenForm"];
         form.reset();
         form.elements["id"].value = 0;
     }
     function row(token) {
-
         const tr = document.createElement("tr");
         tr.setAttribute("data-rowid", token.id);
 
@@ -178,7 +177,7 @@
         const name = form.elements["username"].value;
         const token = form.elements["token"].value;
 
-        EditToken(id, name, token);
+        EditToken(id, token, name);
         const addBtn = document.getElementById('addToken')
         addBtn.disabled = false;
     };

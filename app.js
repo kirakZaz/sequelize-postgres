@@ -1,8 +1,8 @@
 import http from 'http';
 import express from 'express';
-
 import logger from 'morgan';
 import bodyParser from 'body-parser';
+
 import router  from './server/routes';
 import db from './server/models';
 
@@ -21,7 +21,6 @@ function main () {
     app.set('view engine', 'html');
 
     db.sequelize.sync();
-    // app.use('/', userRoutes);
 
     const Role = db.role;
     db.sequelize.sync().then(() => {
@@ -60,7 +59,6 @@ function main () {
     app.get("/tokens", function (request, response) {
         response.sendFile(__dirname + "/server/views/tokens.html");
     });
-
 
     server.listen(port, hostname, () => {
         console.log(`Server running at http://${hostname}:${port}/`);

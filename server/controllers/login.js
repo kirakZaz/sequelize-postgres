@@ -17,8 +17,6 @@ const bcrypt = require("bcryptjs");
 
 exports.signup = (req, res) => {
     // Save User to Database
-    console.log(' req.body',  req.body);
-
     User.create({
         username: req.body.username,
         email: req.body.email,
@@ -26,17 +24,6 @@ exports.signup = (req, res) => {
         role: req.body.role
     })
         .then(user => {
-            const token = jwt.sign({ id: user.id }, config.secret, {
-                expiresIn: 86400 // 24 hours
-            });
-            Token.create({
-                id: user.id,
-                username: user.username,
-                token: token
-            }).then((resp) => {
-                console.log('!!!!!!!!');
-
-            });
             if (req.body.roles) {
                 Role.findAll({
                     where: {
@@ -45,14 +32,28 @@ exports.signup = (req, res) => {
                         }
                     }
                 }).then(roles => {
-                    console.log('roles', roles);
-
+                    const token = jwt.sign({ id: user.id }, config.secret, {
+                        expiresIn: 86400 // 24 hours
+                    });
+                    Token.create({
+                        id: user.id,
+                        username: user.username,
+                        token: token
+                    });
                     user.setRoles(roles).then(() => {
                         res.send({ message: "User was registered successfully!" });
                     });
 
                 });
             } else {
+                const token = jwt.sign({ id: user.id }, config.secret, {
+                    expiresIn: 86400 // 24 hours
+                });
+                Token.create({
+                    id: user.id,
+                    username: user.username,
+                    token: token
+                });
                 user.setRoles([1]).then(() => {
                     res.send({ message: "User was registered successfully!" });
                 });
@@ -74,7 +75,7 @@ exports.signin = (req, res) => {
                 return res.status(404).send({ message: "User Not found." });
             }
 
-            const passwordIsValid = bcrypt.compareSync(
+            var passwordIsValid = bcrypt.compareSync(
                 req.body.password,
                 user.password
             );
@@ -86,11 +87,11 @@ exports.signin = (req, res) => {
                 });
             }
 
-            const token = jwt.sign({ id: user.id }, config.secret, {
+            var token = jwt.sign({ id: user.id }, config.secret, {
                 expiresIn: 86400 // 24 hours
             });
 
-            const authorities = [];
+            var authorities = [];
             user.getRoles().then(roles => {
                 for (let i = 0; i < roles.length; i++) {
                     authorities.push("ROLE_" + roles[i].name.toUpperCase());
