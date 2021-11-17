@@ -8,7 +8,7 @@ exports.create = async (req, res) => {
         });
         return;
     }
-    console.log('!"!"!',  req.body);
+
     const token = {
         username: req.body.username,
         token: req.body.token
@@ -37,7 +37,6 @@ exports.findAll = async (req, res) => {
 
 exports.findOne = (req, res) => {
     const id = req.params.id;
-    console.log('token id', id);
 
     Token.findByPk(id)
         .then(data => {

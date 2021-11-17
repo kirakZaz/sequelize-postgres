@@ -8,6 +8,7 @@
 </head>
 <body style="padding: 30px">
 <h2>Users List</h2>
+<a href="/tokens">Go to Tokens</a>
 <form name="userForm">
     <input type="hidden" name="id" value="0" />
     <div class="form-group">
@@ -47,14 +48,14 @@
 
 <script>
     async function GetUsers() {
-        const response = await fetch("/api/users", {
+        const response = await fetch("api/users", {
             method: "GET",
             headers: { "Accept": "application/json" }
         });
         if (response.ok === true) {
             const users = await response.json();
             let rows = document.querySelector("tbody");
-            users.forEach(user => {
+            users.length > 0 && users.forEach(user => {
                 rows.append(row(user));
             });
         }
@@ -69,7 +70,7 @@
             const user = await response.json();
 
             const form = document.forms["userForm"];
-            form.elements["id"].value = user.id;
+            form.elements["id"].value = user.id || user._id;
             form.elements["username"].value = user.username;
             form.elements["email"].value = user.email;
         }
@@ -107,9 +108,10 @@
 
         if (response.ok === true) {
             const user = await response.json();
+            const id = user.data.id || user.data._id
 
             reset();
-            document.querySelector("tr[data-rowid='" + user.data.id + "']").replaceWith(row(user.data));
+            document.querySelector("tr[data-rowid='" + id + "']").replaceWith(row(user.data));
         }
     }
 
@@ -120,6 +122,7 @@
         });
         if (response.ok === true) {
             const user = await response.json();
+
             document.querySelector("tr[data-rowid='" + user.data + "']").remove();
         }
     }
@@ -127,9 +130,10 @@
     function reset() {
         const form = document.forms["userForm"];
         form.reset();
-        form.elements["id"].value = 0;
+        form.elements["id" || "_id"].value = 0;
     }
     function row(user) {
+        user.id = (user.id || user._id)
 
         const tr = document.createElement("tr");
         tr.setAttribute("data-rowid", user.id);
@@ -153,11 +157,13 @@
         const linksTd = document.createElement("td");
 
         const editLink = document.createElement("a");
+
         editLink.setAttribute("data-id", user.id);
         editLink.setAttribute("style", "cursor:pointer;padding:15px;");
         editLink.append("Edit");
         editLink.addEventListener("click", e => {
             e.preventDefault();
+
             GetUser(user.id);
             const addBtn = document.getElementById('addUser')
             addBtn.disabled = true;

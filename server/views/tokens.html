@@ -7,18 +7,19 @@
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" />
 </head>
 <body style="padding: 30px">
-<h2>tokens List</h2>
+<h2>Tokens List</h2>
+<a href="/users">Go to Users</a>
 <form name="tokenForm">
     <input type="hidden" name="id" value="0" />
     <div class="form-group">
-        <label for="username">Username:</label>
-        <input class="form-control" name="username" />
+        <label for="username">Email:</label>
+        <select id="userNamesSelection" class="form-control" name="email"></select>
     </div>
     <div class="form-group">
         <label for="token">Token:</label>
-        <input class="form-control" name="token" />
+        <input class="form-control" id="tokenInput" name="token" />
     </div>
-
+    <div id="errorDiv"></div>
     <div class="panel-body">
         <button type="button" id="addToken" class="btn btn-sm btn-primary">Add</button>
         <button type="button" id="editToken" class="btn btn-sm btn-primary">Edit</button>
@@ -28,7 +29,7 @@
     <thead>
     <tr>
         <th>Id</th>
-        <th>User</th>
+        <th>Email</th>
         <th>Token</th>
         <th></th>
     </tr>
@@ -39,11 +40,11 @@
 
 <script>
     async function GetTokens() {
-        const response = await fetch("/api/tokens", {
+        const response = await fetch("api/tokens", {
             method: "GET",
             headers: { "Accept": "application/json" }
         });
-        console.log('response', response)
+
         if (response.ok === true) {
             const tokens = await response.json();
             let rows = document.querySelector("tbody");
@@ -53,30 +54,51 @@
         }
     }
 
+    async function GetUsers() {
+        const response = await fetch("api/users", {
+            method: "GET",
+            headers: { "Accept": "application/json" }
+        });
+
+        if (response.ok === true) {
+            const users = await response.json();
+            let rows = document.querySelector("tbody");
+            createSelectionList(users)
+            users.forEach(user => {
+                rows.append(row(user));
+            });
+        }
+    }
+
     async function GetToken(id) {
-        const response = await fetch(`/api/tokens/${id}`, {
+        const response = await fetch(`api/tokens/${id}`, {
             method: "GET",
             headers: { "Accept": "application/json" }
         });
         if (response.ok === true) {
             const token = await response.json();
+            const sel = document.getElementById('userNamesSelection');
+            const opts = sel.options;
+
+            for (let opt, j = 0; opt = opts[j]; j++) {
+                if (opt.dataset.email === token.email) {
+                    opt.setAttribute('selected', true);
+                    break;
+                }
+            }
 
             const form = document.forms["tokenForm"];
-            console.log('form', form.elements)
-            form.elements["id"].value = token.id;
-            form.elements["username"].value = token.username;
+            form.elements["id"].value = token.id || token._id;
             form.elements["token"].value = token.token;
         }
     }
 
-    async function CreateToken(id, userName, token) {
+    async function CreateToken(id) {
         const response = await fetch(`api/tokens`, {
             method: "POST",
             headers: { "Accept": "application/json", "Content-Type": "application/json" },
             body: JSON.stringify({
-                id,
-                username: userName,
-                token: token
+                id: id
             })
         });
         if (response.ok === true) {
@@ -86,22 +108,25 @@
         }
     }
 
-    async function EditToken(userId, token, userName) {
+    async function EditToken(userId, email, token) {
         const response = await fetch(`api/tokens/${userId}`, {
             method: "PUT",
             headers: { "Accept": "application/json", "Content-Type": "application/json" },
             body: JSON.stringify({
                 id: userId,
-                username: userName,
+                email: email,
                 token: token
             })
         });
 
         if (response.ok === true) {
-            const user = await response.json();
+            const tokenResp = await response.json();
+            const id = (tokenResp.data.id || tokenResp.data._id)
 
             reset();
-            document.querySelector("tr[data-rowid='" + user.data.id + "']").replaceWith(row(user.data));
+            document.querySelector("tr[data-rowid='" + id + "']").replaceWith(row(tokenResp.data));
+            const tokenInput = document.getElementById('tokenInput')
+            tokenInput.disabled = true
         }
     }
 
@@ -112,6 +137,7 @@
         });
         if (response.ok === true) {
             const token = await response.json();
+
             document.querySelector("tr[data-rowid='" + token.data + "']").remove();
         }
     }
@@ -121,7 +147,25 @@
         form.reset();
         form.elements["id"].value = 0;
     }
+    function createSelectionList(users) {
+        const select = document.getElementById('userNamesSelection')
+
+        const y = [{email: "Select user", _id: 0}].concat(users)
+        y.map((user, i) => {
+            let option = y[i];
+            const el = document.createElement("option");
+
+            el.textContent = option.email;
+            el.value = option._id;
+            el.setAttribute('data-email', option.email)
+
+            select.appendChild(el);
+        })
+    }
+
     function row(token) {
+        token.id = (token.id || token._id)
+
         const tr = document.createElement("tr");
         tr.setAttribute("data-rowid", token.id);
 
@@ -129,9 +173,9 @@
         idTd.append(token.id);
         tr.append(idTd);
 
-        const nameTd = document.createElement("td");
-        nameTd.append(token.username);
-        tr.append(nameTd);
+        const emailTd = document.createElement("td");
+        emailTd.append(token.email);
+        tr.append(emailTd);
 
         const tokenTd = document.createElement("td");
         tokenTd.append(token.token);
@@ -139,17 +183,26 @@
         tokenTd.style.overflow = "scroll"
         tr.append(tokenTd);
 
+        const tokenInput = document.getElementById('tokenInput')
+        tokenInput.disabled = true
+
         const linksTd = document.createElement("td");
 
         const editLink = document.createElement("a");
+
         editLink.setAttribute("data-id", token.id);
         editLink.setAttribute("style", "cursor:pointer;padding:15px;");
         editLink.append("Edit");
         editLink.addEventListener("click", e => {
             e.preventDefault();
             GetToken(token.id);
+
             const addBtn = document.getElementById('addToken')
+            const emailInput = document.getElementById('userNamesSelection')
+            const tokenInput = document.getElementById('tokenInput')
+            tokenInput.disabled = false
             addBtn.disabled = true;
+            emailInput.disabled = true;
 
         });
         linksTd.append(editLink);
@@ -171,34 +224,57 @@
 
     document.getElementById('editToken').onclick = function(e) {
         e.preventDefault();
-
         const form = document.forms["tokenForm"];
+
         const id = form.elements["id"].value;
-        const name = form.elements["username"].value;
+        const email = form.elements["email"].value;
         const token = form.elements["token"].value;
 
-        EditToken(id, token, name);
         const addBtn = document.getElementById('addToken')
+        const emailInput = document.getElementById('userNamesSelection')
+
+        EditToken(id, email, token);
+
         addBtn.disabled = false;
+        emailInput.disabled = false;
     };
 
     document.getElementById('addToken').onclick = function(e) {
         e.preventDefault();
-        let s4 = () => {
-            return Math.floor((1 + Math.random()) * 0x10000)
-                .toString(16)
-                .substring(1);
-        }
 
         const form = document.forms["tokenForm"];
-        const id = s4();
-        const name = form.elements["username"].value;
-        const token = form.elements["token"].value;
+        console.log('form', form)
+        const email = form.elements["email"].value;
 
-        CreateToken(id, name, token);
+        if (email === '0') {
+            const error = document.createElement("span");
+            error.className = 'errorText'
+            error.append( "You must select some user");
+
+            const close = document.createElement("a")
+            close.append( "   X");
+
+            close.onclick = function(e) {
+                e.preventDefault();
+                errorDiv.removeChild(error);
+                errorDiv.removeChild(close);
+            }
+
+            const errorDiv = document.getElementById('errorDiv')
+            errorDiv.style = "color:red"
+
+            if(!errorDiv.hasChildNodes()) {
+                errorDiv.appendChild(error);
+                errorDiv.appendChild(close);
+            }
+        } else {
+            CreateToken(email);
+        }
+
     };
 
     GetTokens();
+    GetUsers()
 </script>
 </body>
 </html>

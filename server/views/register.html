@@ -21,7 +21,7 @@
 
 <script>
     async function logInn(userName, email, pass, role) {
-        const response = await fetch("/api/auth/signup", {
+        const response = await fetch("api/auth/signup", {
             method: "POST",
             headers: { "Accept": "application/json", "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -32,7 +32,9 @@
             })
         });
         if (response.ok === true) {
-            window.location.replace("/users");
+            window.location.replace("/signin");
+        } else {
+            console.log('error register')
         }
     }
 

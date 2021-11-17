@@ -4,8 +4,6 @@ const User = db.user;
 const Role = db.role;
 const Token = db.token;
 
-console.log('ROLE', Role);
-
 const Op = db.Sequelize.Op;
 
 const config = {
