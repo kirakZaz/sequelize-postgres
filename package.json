@@ -36,7 +36,6 @@
   "devDependencies": {
     "babel-eslint": "^10.1.0",
     "babel-preset-env": "^1.7.0",
-    "cookie-parser": "^1.4.6",
     "nodemon": "^2.0.3"
   }
 }

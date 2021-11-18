@@ -3,7 +3,7 @@ import express from 'express';
 import logger from 'morgan';
 import bodyParser from 'body-parser';
 import swaggerUi from 'swagger-ui-express';
-const cookieParser = require('cookie-parser');
+
 
 // todo sequelize connection
 // import router  from './server/routes';
@@ -11,10 +11,6 @@ const cookieParser = require('cookie-parser');
 // ----
 // todo mongo connection
 const db = require("./server/models/mogoose");
-const mongoRolesRouter = require("./server/routes/mongoose/roles");
-const mongoUsersRouter = require("./server/routes/mongoose/users");
-const mongoAuthRouter = require("./server/routes/mongoose/auth");
-
 const mongoRouter = require("./server/routes/mongoose");
 
 import swaggerDocument from './server/swagger.json';
@@ -35,7 +31,6 @@ function main () {
     app.use(logger('dev'));
     app.use(bodyParser.json());
     app.use(bodyParser.urlencoded({extended: false}));
-    app.use(cookieParser());
 
     app.use('/swagger',
         swaggerUi.serve,
@@ -106,10 +101,6 @@ function main () {
         });
     }
 
-
-    // app.use('/api/users/', mongoUsersRouter);
-    // app.use('/api/roles/', mongoRolesRouter);
-    // app.use('/api/auth/', mongoAuthRouter);
     app.use('/api/', mongoRouter);
 
     app.get("/", function (request, response) {
@@ -131,7 +122,7 @@ function main () {
         })
         .then(() => {
             console.log("Connected to the database!");
-            // initial();
+            initial();
             server.listen(port, hostname, () => {
                 console.log(`Server running at http://${hostname}:${port}/`);
             });
