@@ -40,6 +40,9 @@
                 },
                 "role": {
                     "type": "string"
+                },
+                "password": {
+                    "type": "string"
                 }
             }
         },
@@ -47,7 +50,7 @@
             "type": "object",
             "required": ["username", "token"],
             "properties": {
-                "username": {
+                "email": {
                     "type": "string"
                 },
                 "token": {
