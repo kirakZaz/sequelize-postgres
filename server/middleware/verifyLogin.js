@@ -1,6 +1,8 @@
 const db = require("../models/mogoose/index");
+const User = require("../models/mogoose/roles");
+const jwt = require("jsonwebtoken");
+
 const ROLES = db.ROLES;
-const User = db.user;
 
 const checkDuplicateUsernameOrEmail = (req, res, next) => {
     // Username
@@ -47,6 +49,22 @@ const checkRolesExisted = (req, res, next) => {
     }
 
     next();
+};
+
+const verifyToken = (req, res, next) => {
+    let token = req.headers["x-access-token"];
+
+    if (!token) {
+        return res.status(403).send({ message: "No token provided!" });
+    }
+
+    jwt.verify(token, config.secret, (err, decoded) => {
+        if (err) {
+            return res.status(401).send({ message: "Unauthorized!" });
+        }
+        req.userId = decoded.id;
+        next();
+    });
 };
 
 const verifySignUp = {

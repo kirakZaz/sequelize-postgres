@@ -1,6 +1,4 @@
-const config = {
-    secret: "bezkoder-secret-key"
-};
+const config = require('../../config/config');
 
 const User = require("../../models/mogoose/users");
 const Token = require("../../models/mogoose/tokens");
@@ -22,7 +20,6 @@ exports.signup = async (req, res) => {
         if (!re.test(email)) {
             res.status(400).send("Email is not correct");
         }
-
 
         // check if user already exist
         // Validate if user exist in our database

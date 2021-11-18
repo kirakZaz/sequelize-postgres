@@ -5,7 +5,11 @@ const express = require('express');
 const router = express.Router();
 
 router.post("/signin", controller.signin);
-router.post("/signup", controller.signup);
+
+router.post("/signup", [
+    verifySignUp.checkDuplicateUsernameOrEmail,
+    verifySignUp.checkRolesExisted
+], controller.signup);
 
 
 module.exports = router;
