@@ -12,7 +12,7 @@ const checkDuplicateUsernameOrEmail = (req, res, next) => {
         }
     }).then(user => {
         if (user) {
-            res.status(400).send({
+            res.status(400).json({
                 message: "Failed! Username is already in use!"
             });
             return;
@@ -25,7 +25,7 @@ const checkDuplicateUsernameOrEmail = (req, res, next) => {
             }
         }).then(user => {
             if (user) {
-                res.status(400).send({
+                res.status(400).json({
                     message: "Failed! Email is already in use!"
                 });
                 return;
@@ -49,22 +49,6 @@ const checkRolesExisted = (req, res, next) => {
     }
 
     next();
-};
-
-const verifyToken = (req, res, next) => {
-    let token = req.headers["x-access-token"];
-
-    if (!token) {
-        return res.status(403).send({ message: "No token provided!" });
-    }
-
-    jwt.verify(token, config.secret, (err, decoded) => {
-        if (err) {
-            return res.status(401).send({ message: "Unauthorized!" });
-        }
-        req.userId = decoded.id;
-        next();
-    });
 };
 
 const verifySignUp = {

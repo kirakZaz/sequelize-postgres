@@ -12,6 +12,7 @@ exports.findAll = (req, res) => {
         res.status(401).json({ error: "Unauthorized action!" });
     }
 };
+
 exports.create = (req, res) => {
     try {
         let { name } = req.body;

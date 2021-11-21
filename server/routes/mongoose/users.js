@@ -1,11 +1,12 @@
 const express = require('express');
 const router = express.Router();
+const { userMiddleware } = require('../../middleware/mongoose/userMiddleware');
 
 const controller = require("../../controllers/mongose/users");
 
-router.get("/", controller.findAll);
+router.get("/",  controller.findAll);
 
-router.post("/", controller.create);
+router.post("/", userMiddleware, controller.create);
 
 router.get("/:id", controller.findOne);
 

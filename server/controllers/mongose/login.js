@@ -1,11 +1,10 @@
-const config = require('../../config/config');
-
 const User = require("../../models/mogoose/users");
 const Token = require("../../models/mogoose/tokens");
 
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const mongoose = require("mongoose");
+const verifySignUp = require("../../middleware/mongoose/VerifySingUp");
 
 exports.signup = async (req, res) => {
     try {
@@ -18,17 +17,11 @@ exports.signup = async (req, res) => {
             res.status(400).send("All input is required");
         }
         if (!re.test(email)) {
-            res.status(400).send("Email is not correct");
+            res.status(400).json({ error: "Email is not correct" });
         }
 
-        // check if user already exist
-        // Validate if user exist in our database
-        const oldUser = await User.findOne({ email });
-
-        if (oldUser) {
-            return res.status(409).send("User Already Exist. Please Login");
-        }
         let _id = mongoose.Types.ObjectId();
+
         const user = await User.create({
             _id,
             username: req.body.username,
@@ -36,7 +29,7 @@ exports.signup = async (req, res) => {
             password: bcrypt.hashSync(req.body.password, 8),
             role: req.body.role
         });
-        const token = jwt.sign({ id: user.id }, config.secret, {
+        const token = jwt.sign({ id: user.id }, process.env.TOKEN_KEY, {
             expiresIn: 86400 // 24 hours
         });
 
@@ -54,44 +47,51 @@ exports.signup = async (req, res) => {
 
     }  catch (err) {
         console.log(err);
+        res.status(500).json({error: err});
     }
 };
 
-exports.signin = async (req, res) => {
+exports.signin = async (req, res, next) => {
     try {
         // Get user input
         const { email, password } = req.body;
 
         // Validate user input
         if (!(email && password)) {
-            res.status(400).send("All input is required");
+            res.status(400).json("All input is required");
         }
         // Validate if user exist in our database
         const user = await User.findOne({ email });
+
 
         if (user && (await bcrypt.compare(password, user.password))) {
             // Create token
             const token = jwt.sign(
                 { user_id: user._id, email },
-                config.secret,
+                process.env.TOKEN_KEY,
                 {
                     expiresIn: "2h",
                 }
             );
+
+            req.body.token = token; 
+            verifySignUp.verifyToken(req, res, next);
+
             Token.create({
                 _id: mongoose.Types.ObjectId(),
                 username: user.username,
                 email: email,
                 token: token
             });
-            // save user token
-            user.token = token;
+
             res.cookie('userID', user._id);
+
             // user
             res.status(200).json(user);
+        } else {
+            res.status(400).json({error: "Invalid Credentials"});
         }
-        res.status(400).send("Invalid Credentials");
     } catch (err) {
-        console.log(err);
+        res.status(500).json({error: err});
     }
 };

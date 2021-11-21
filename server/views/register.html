@@ -15,28 +15,45 @@
         <option>admin</option>
         <option>moderator</option>
     </select><br><br>
-    <input type="submit" value="Send">
+    <div id="regErrors" style="color:red"></div>
+
+    <input type="submit" value="Send"></br></br>
+    <a href="/signin">Log inn</a>
+
 </form>
 </body>
 
 <script>
-    async function logInn(userName, email, pass, role) {
-        const response = await fetch("api/auth/signup", {
-            method: "POST",
-            headers: { "Accept": "application/json", "Content-Type": "application/json" },
-            body: JSON.stringify({
-                username: userName,
-                email: email,
-                password: pass,
-                role: role
-            })
-        });
-        if (response.ok === true) {
-            window.location.replace("/signin");
-        } else {
-            console.log('error register')
-        }
-    }
+  async function logInn(userName, email, pass, role) {
+      const response = await fetch("api/auth/signup", {
+          method: "POST",
+          headers: {"Accept": "application/json", "Content-Type": "application/json"},
+          body: JSON.stringify({
+              username: userName,
+              email: email,
+              password: pass,
+              role: role
+          })
+      });
+
+      const err = document.getElementById('regErrors')
+      while (err.firstChild) {
+          err.removeChild(err.lastChild);
+      }
+
+      if (response.ok === true) {
+          window.location.replace("/signin");
+      } else {
+          const { error } = await response.json()
+
+          const spanErr = document.createElement("span")
+          spanErr.style.marginBottom = '10px'
+          spanErr.style.display = 'block'
+          spanErr.textContent = error
+          const err = document.getElementById('regErrors')
+          err.appendChild(spanErr)
+      }
+  }
 
     document.forms["singup"].addEventListener("submit", e => {
         e.preventDefault();

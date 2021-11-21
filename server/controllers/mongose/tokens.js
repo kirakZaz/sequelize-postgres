@@ -1,7 +1,9 @@
-const tokens = require("../../models/mogoose/tokens");
 const validator = require("validator");
 const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
+
+const tokens = require("../../models/mogoose/tokens");
+const User = require("../../models/mogoose/users");
 
 exports.findAll = (req, res) => {
     try {
@@ -33,21 +35,18 @@ exports.findOne = (req, res) => {
         res.status(401).json({ error: "Unauthorized action!" });
     }
 };
-const config = {
-    secret: "bezkoder-secret-key"
-};
-const User = require("../../models/mogoose/users");
 
 exports.create = (req, res) => {
     try {
         let { id } = req.body;
         User.findOne({_id: id}, function(err, user) {
+
             if(user) {
                 let _id = mongoose.Types.ObjectId();
                 const userId = user._id || user.id;
                 const email = user.email;
 
-                const token = jwt.sign({ id: userId }, config.secret, {
+                const token = jwt.sign({ id: userId }, process.env.TOKEN_KEY, {
                     expiresIn: 86400 // 24 hours
                 });
                 tokens.create({ _id, email, token }, (err, token) => {

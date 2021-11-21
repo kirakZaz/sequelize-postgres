@@ -1,6 +1,10 @@
-const db = require("../../models");
+const db = require("../../models/mogoose");
+const User = require("../../models/mogoose/users");
+const jwt = require("jsonwebtoken");
 const ROLES = db.ROLES;
-const User = db.user;
+// const User = db.user;
+
+const config = process.env;
 
 const checkDuplicateUsernameOrEmail = (req, res, next) => {
     // Username
@@ -8,15 +12,12 @@ const checkDuplicateUsernameOrEmail = (req, res, next) => {
         username: req.body.username
     }).exec((err, user) => {
         if (err) {
-            res.status(500).send({ message: err });
-            return;
+            req.status(500).json({ message: err });
+            return err;
         }
-
         if (user) {
-            res.status(400).send({ message: "Failed! Username is already in use!" });
-            return;
+            return res.status(400).json({ error: "User Already Exist. Please Login"});
         }
-
         // Email
         User.findOne({
             email: req.body.email
@@ -51,9 +52,25 @@ const checkRolesExisted = (req, res, next) => {
     next();
 };
 
+const verifyToken = (req, res, next) => {
+    const token = req.body.token || req.query.token || req.headers["x-access-token"];
+
+    if (!token) {
+        return res.status(403).send("A token is required for authentication");
+    }
+    try {
+        const decoded = jwt.verify(token, config.TOKEN_KEY);
+        req.user = decoded;
+    } catch (err) {
+        return res.status(401).send("Invalid Token");
+    }
+    return next();
+};
+
 const verifySignUp = {
     checkDuplicateUsernameOrEmail,
-    checkRolesExisted
+    checkRolesExisted,
+    verifyToken
 };
 
 module.exports = verifySignUp;
