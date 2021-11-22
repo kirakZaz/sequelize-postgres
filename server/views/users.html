@@ -47,6 +47,21 @@
 </table>
 
 <script>
+    function createError(error) {
+        Object.values(error.data.errors).map((errKey) => {
+            const spanErr = document.createElement("span")
+            spanErr.style.marginBottom = '10px'
+            spanErr.style.display = 'block'
+            spanErr.textContent = errKey[0]
+            const err = document.getElementById('regErrors')
+            err.appendChild(spanErr)
+        })
+    }
+    function clearError(err) {
+        while (err.firstChild) {
+            err.removeChild(err.lastChild);
+        }
+    }
     async function GetUsers() {
         const response = await fetch("api/users", {
             method: "GET",
@@ -88,23 +103,15 @@
             })
         });
         const err = document.getElementById('regErrors')
-        while (err.firstChild) {
-            err.removeChild(err.lastChild);
-        }
+        clearError(err)
+        
         if (response.ok === true) {
             const user = await response.json();
             reset();
             document.querySelector("tbody").append(row(user));
         } else {
             const error = await response.json();
-            Object.values(error.data.errors).map((errKey) => {
-                const spanErr = document.createElement("span")
-                spanErr.style.marginBottom = '10px'
-                spanErr.style.display = 'block'
-                spanErr.textContent = errKey[0]
-                const err = document.getElementById('regErrors')
-                err.appendChild(spanErr)
-            })
+            createError(error)
         }
     }
 
@@ -120,12 +127,18 @@
             })
         });
 
+        const err = document.getElementById('regErrors')
+        clearError(err)
+
         if (response.ok === true) {
             const user = await response.json();
             const id = user.data.id || user.data._id
 
             reset();
             document.querySelector("tr[data-rowid='" + id + "']").replaceWith(row(user.data));
+        } else {
+            const error = await response.json();
+            createError(error)
         }
     }
 

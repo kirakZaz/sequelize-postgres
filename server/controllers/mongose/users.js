@@ -36,6 +36,11 @@ exports.findOne = (req, res) => {
 exports.create = (req, res) => {
     try {
         let { username, password, role, email } = req.body;
+
+        if (!(email && password && email)) {
+            res.status(400).json("All input is required");
+        }
+
         let _id = mongoose.Types.ObjectId();
 
         Users.create({ _id, username, password, role, email }, (err, user) => {

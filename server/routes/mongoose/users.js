@@ -10,7 +10,7 @@ router.post("/", userMiddleware, controller.create);
 
 router.get("/:id", controller.findOne);
 
-router.put("/:id", controller.update);
+router.put("/:id", userMiddleware, controller.update);
 
 router.delete("/:id", controller.delete);
 
