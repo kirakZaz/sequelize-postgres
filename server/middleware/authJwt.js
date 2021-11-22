@@ -2,10 +2,6 @@ const jwt = require("jsonwebtoken");
 const db = require("../models");
 const User = db.user;
 
-const config = {
-    secret: "bezkoder-secret-key"
-};
-
 const verifyToken = (req, res, next) => {
     let token = req.headers["x-access-token"];
 
@@ -15,7 +11,7 @@ const verifyToken = (req, res, next) => {
         });
     }
 
-    jwt.verify(token, config.secret, (err, decoded) => {
+    jwt.verify(token, process.env.TOKEN_KEY, (err, decoded) => {
         if (err) {
             return res.status(401).send({
                 message: "Unauthorized!"

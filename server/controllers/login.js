@@ -6,10 +6,6 @@ const Token = db.token;
 
 const Op = db.Sequelize.Op;
 
-const config = {
-    secret: "bezkoder-secret-key"
-};
-
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 
@@ -30,7 +26,7 @@ exports.signup = (req, res) => {
                         }
                     }
                 }).then(roles => {
-                    const token = jwt.sign({ id: user.id }, config.secret, {
+                    const token = jwt.sign({ id: user.id }, process.env.TOKEN_KEY, {
                         expiresIn: 86400 // 24 hours
                     });
                     Token.create({
@@ -44,7 +40,7 @@ exports.signup = (req, res) => {
 
                 });
             } else {
-                const token = jwt.sign({ id: user.id }, config.secret, {
+                const token = jwt.sign({ id: user.id }, process.env.TOKEN_KEY, {
                     expiresIn: 86400 // 24 hours
                 });
                 Token.create({
@@ -85,7 +81,7 @@ exports.signin = (req, res) => {
                 });
             }
 
-            var token = jwt.sign({ id: user.id }, config.secret, {
+            var token = jwt.sign({ id: user.id }, process.env.TOKEN_KEY, {
                 expiresIn: 86400 // 24 hours
             });
 
